@@ -15,10 +15,10 @@ connectDB();
 app.use(express.json());
 
 //3.RUTAS
-app.use("/activity", require("./routes/activities"));
+app.use("/library", require("./routes/library"));
 
 //users
-app.use("/users", require("./routes/users"));
+app.use("/auth", require("./routes/users"));
 
 //4.SERVER
 app.listen(process.env.PORT, () => {
