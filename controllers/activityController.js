@@ -5,10 +5,12 @@ const User = require("./../models/User");
 //CREAR ACTIVIDAD
 exports.createActivity = async (req, res) => {
   //Obtener los datos del formulario
-  const { type, level, topic, structure, url } = req.body;
+  const { title, description, type, level, topic, structure, url } = req.body;
 
   try {
     const newActivity = await Activity.create({
+      title,
+      description,
       type,
       level,
       topic,
@@ -16,15 +18,15 @@ exports.createActivity = async (req, res) => {
       url,
     });
     //Devolver la respuesta en formato json
-    res.json({
-      msg: "Actividad creada con éxito",
-      data: newActivity,
+    res.status(200).json({
+      message: "Success",
+      activity: newActivity,
+      level: level,
     });
   } catch (error) {
     //error en server
-    console.log(error);
     res.status(500).json({
-      msg: "Hubo un error creando la actividad",
+      message: "Hubo un error creando la actividad",
       error: error,
     });
   }
@@ -33,14 +35,37 @@ exports.createActivity = async (req, res) => {
 //READ ACTIVITIES
 exports.readAllActivities = async (req, res) => {
   try {
-    const activities = await Activity.find({});
+    const { search } = req.body;
+
+    let activities;
+    if (!search) {
+      activities = await Activity.find({});
+    } else {
+      let regex = new RegExp(search, "i");
+
+      activities = await Activity.find({
+        $and: [
+          {
+            $or: [
+              { title: regex },
+              { description: regex },
+              { type: regex },
+              { level: regex },
+              { topic: regex },
+              { structure: regex },
+            ],
+          },
+        ],
+      });
+    }
+
     res.json({
-      msg: "Actividades obtenidas con éxito",
-      data: activities,
+      message: "Actividades obtenidas con éxito",
+      activities,
     });
   } catch (error) {
     res.status(500).json({
-      msg: "Hubo un error obteniendo las actividades",
+      message: "Hubo un error obteniendo las actividades",
       error: error,
     });
   }
@@ -55,12 +80,12 @@ exports.readOneActivity = async (req, res) => {
   try {
     const activity = await Activity.findById(id);
     res.json({
-      msg: "Actividad obtenida con éxito",
+      message: "Actividad obtenida con éxito",
       data: activity,
     });
   } catch (error) {
     res.status(500).json({
-      msg: "Hubo un error obteniendo los datos.",
+      message: "Hubo un error obteniendo los datos.",
       error: error,
     });
   }
@@ -72,11 +97,13 @@ exports.editActivity = async (req, res) => {
   const { id } = req.params;
 
   //obtiene datos del body
-  const { type, level, topic, structure, url } = req.body;
+  const { title, description, type, level, topic, structure, url } = req.body;
   try {
     const updateActivity = await Activity.findByIdAndUpdate(
       id,
       {
+        title,
+        description,
         type,
         level,
         topic,
@@ -86,12 +113,13 @@ exports.editActivity = async (req, res) => {
       { new: true }
     );
     res.json({
-      msg: "Actividad actualizada con éxito",
+      message: "Actividad actualizada con éxito",
       data: updateActivity,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({
-      msg: "Hubo un error actualizando los datos.",
+      message: "Hubo un error actualizando los datos.",
       error: error,
     });
   }
@@ -103,14 +131,16 @@ exports.deleteActivity = async (req, res) => {
   try {
     const deleteActivity = await Activity.findByIdAndRemove({ _id: id });
     res.json({
-      msg: "Actividad borrada con éxito",
+      message: "Actividad borrada con éxito",
       data: deleteActivity,
     });
   } catch (error) {
     console.log(error);
     res.json({
-      msg: "Hubo un error borrando la actividad.",
+      message: "Hubo un error borrando la actividad.",
       error: error,
     });
   }
 };
+
+exports.uploadActivity = async (req, res) => {};

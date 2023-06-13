@@ -4,6 +4,14 @@ const Schema = mongoose.Schema;
 
 //2. SCHEMA
 const activitySchema = Schema({
+  title: {
+    type: String,
+    require: true,
+  },
+  description: {
+    type: String,
+    require: true,
+  },
   type: {
     type: String,
     require: true,
@@ -13,18 +21,18 @@ const activitySchema = Schema({
     require: true,
   },
   topic: String,
-
   structure: {
     type: String,
     require: true,
   },
-  exercises: {
-    type: String,
-    require: true,
-  },
+
   url: {
     type: String,
     require: true,
+  },
+
+  image: {
+    type: String,
   },
 });
 

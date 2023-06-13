@@ -9,6 +9,7 @@ const {
   readAllUsers,
   readOneUser,
   editUser,
+  updateUser,
 } = require("./../controllers/userController");
 
 // 2. ROUTER
@@ -22,13 +23,15 @@ router.post("/login", postLogin);
 router.get("/verifytoken", authorization, getVerifyToken);
 
 //lEER USUARIOS
-router.get("/readall", readAllUsers);
+router.post("/readall", authorization, readAllUsers);
 
 //LEER UN USUARIO
-router.get("/readone/:id", readOneUser);
+router.get("/readone", authorization, readOneUser);
 
 //EDITAR DATOS DE USUARIO
-router.put("/editprofile/:id", editUser);
+router.put("/editprofile/:id", authorization, editUser);
+
+router.put("/updaterole/:id", authorization, updateUser);
 
 // 3. EXPORTACIÓN
 module.exports = router;

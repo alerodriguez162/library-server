@@ -5,14 +5,13 @@ const jwt = require("jsonwebtoken");
 exports.postSignup = async (req, res) => {
   //Creacion de usuarios
   //1.OBTENER USUARIO, EMAIL Y PASSWORD DEL FORMULARIO (REQ)
-  const { name, lastname, description, email, password, image, role } =
-    req.body;
+  const { name, lastName, level, email, password } = req.body;
 
   //2.VALIDACIONES
   //a) Datos vacios
   if ((!name, !email, !password)) {
-    return res.status(500).json({
-      msg: "Todos los campos son obligatorios",
+    return res.status(400).json({
+      message: "Todos los campos son obligatorios",
       error: error,
     });
   }
@@ -25,11 +24,9 @@ exports.postSignup = async (req, res) => {
     //4.CREAR USUARIO EN BASE DE DATOS
     const newUser = await User.create({
       name,
-      lastname,
-      description,
+      lastName,
+      level,
       email,
-      image,
-      role,
       //nombre de la prop del modelo:password
       password: hashedPassword,
     });
@@ -52,22 +49,21 @@ exports.postSignup = async (req, res) => {
       (error, token) => {
         if (error) throw error;
 
-        res.json({
-          msg: "Token correctamente generado.",
-          data: token,
+        res.status(200).json({
+          message: "Success",
+          token: token,
         });
       }
     );
   } catch (error) {
+    console.log(error);
     if (error.code === 11000) {
-      res.json({
-        msg: "Email ya registrado. Intente con otro",
-        error: error,
+      res.status(400).json({
+        message: "Email ya registrado. Intente con otro",
       });
     } else {
-      res.json({
-        msg: "Hubo un error con la creacion de usuario",
-        error: error,
+      res.status(400).json({
+        message: "Hubo un error con la creacion de usuario",
       });
     }
   }
@@ -86,7 +82,7 @@ exports.postLogin = async (req, res) => {
 
     if (!foundUser) {
       return res.status(400).json({
-        msg: "El usuario o la contraseña son incorrectos",
+        message: "El usuario o la contraseña son incorrectos",
       });
     }
 
@@ -95,8 +91,8 @@ exports.postLogin = async (req, res) => {
     //5.VALIDAMOS SI EL PASSWORD COINCIDE...
 
     if (!verifiedPass) {
-      return await res.json({
-        msg: "El usuario o la contraseña son incorrectos",
+      return await res.status(400).json({
+        message: "El usuario o la contraseña son incorrectos",
       });
     }
 
@@ -118,15 +114,15 @@ exports.postLogin = async (req, res) => {
       },
       (error, token) => {
         if (error) throw error;
-        res.json({
-          data: token,
+        res.status(200).json({
+          token: token,
         });
       }
     );
     return;
   } catch (error) {
-    res.json({
-      mgs: "Hubo un problema con la autenticación",
+    res.status(400).json({
+      message: "Hubo un problema con la autenticación",
       data: error,
     });
   }
@@ -143,14 +139,14 @@ exports.getVerifyToken = async (req, res) => {
     //pasar el token sin contrasena
 
     const foundUser = await User.findById(req.user.id).select("-password");
-    return res.json({
-      msg: "Datos de usuario encontrado",
-      data: foundUser,
+    return res.status(200).json({
+      message: "Datos de usuario encontrado",
+      token: foundUser,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      msg: "Hubo un error con el usuario",
+    res.status(400).json({
+      message: "Hubo un error con el usuario",
     });
   }
 };
@@ -158,14 +154,34 @@ exports.getVerifyToken = async (req, res) => {
 //lEER USUARIOS
 exports.readAllUsers = async (req, res) => {
   try {
-    const users = await User.find({});
-    res.json({
-      msg: "Usuarios obtenidos con éxito",
-      data: users,
+    const { search } = req.body;
+    let users;
+    if (!search) {
+      users = await User.find({});
+    } else {
+      let regex = new RegExp(search, "i");
+
+      users = await User.find({
+        $and: [
+          {
+            $or: [
+              { name: regex },
+              { lastName: regex },
+              { email: regex },
+              { role: regex },
+            ],
+          },
+        ],
+      });
+    }
+
+    res.status(200).json({
+      message: "Usuarios obtenidos con éxito",
+      users: users,
     });
   } catch (error) {
-    res.status(500).json({
-      msg: "Hubo un error obteniendo los datos",
+    res.status(400).json({
+      message: "Hubo un error obteniendo los datos",
       error: error,
     });
   }
@@ -173,19 +189,22 @@ exports.readAllUsers = async (req, res) => {
 
 //LEER UN USUARIO
 exports.readOneUser = async (req, res) => {
-  //obtener los parametros
-  //de la url vamos a obtener datos
-  const { id } = req.params;
-
   try {
-    const user = await User.findById(id);
-    res.json({
-      msg: "Usuario obtenido con éxito",
-      data: user,
+    const user = await User.findById(req.user.id).select("-hashedPassword");
+    res.status(200).json({
+      message: "Usuario obtenido con éxito",
+      user: {
+        _id: user._id,
+        name: user.name,
+        lastName: user.lastName,
+        level: user.level,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
-    res.status(500).json({
-      msg: "Hubo un error obteniendo los datos.",
+    res.status(400).json({
+      message: "Hubo un error obteniendo los datos.",
       error: error,
     });
   }
@@ -205,14 +224,38 @@ exports.editUser = async (req, res) => {
       },
       { new: true }
     );
-    res.json({
-      msg: "Datos actualizada con éxito",
+    res.status(200).json({
+      message: "Datos actualizada con éxito",
       data: updateUser,
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      msg: "Hubo un error actualizando los datos.",
+    res.status(400).json({
+      message: "Hubo un error actualizando los datos.",
+      error: error,
+    });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  try {
+    const updateUser = await User.findByIdAndUpdate(
+      id,
+      {
+        role,
+      },
+      { new: true }
+    );
+    res.status(200).json({
+      message: "Datos actualizada con éxito",
+      data: updateUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({
+      message: "Hubo un error actualizando los datos.",
       error: error,
     });
   }

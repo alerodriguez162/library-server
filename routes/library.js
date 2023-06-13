@@ -1,5 +1,6 @@
 //1.IMPORTACIONES
 const express = require("express");
+
 const router = express.Router();
 const {
   createActivity,
@@ -15,7 +16,7 @@ const {
 router.post("/create", createActivity);
 
 //lEER ACTIVIDADES
-router.get("/readall", readAllActivities);
+router.post("/readall", readAllActivities);
 
 //LEER UNA ACTIVIDAD
 router.get("/readone/:id", readOneActivity);
