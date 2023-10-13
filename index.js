@@ -12,7 +12,16 @@ require("dotenv").config();
 //2.MIDDLEWARES
 //BAse de datos
 connectDB();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "DELETE", "UPDATE", "PUT", "PATCH"],
+  })
+);
+app.use(function (req, res, next) {
+  console.log(req.headers);
+  next();
+});
 
 //Todas las peticiones y respuestas se manejan en protocolo JSON
 app.use(express.json());
