@@ -8,14 +8,7 @@ const cors = require("cors");
 const Activity = require("./models/Activity");
 
 require("dotenv").config();
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(cors());
 
 //2.MIDDLEWARES
 //BAse de datos
@@ -25,6 +18,16 @@ connectDB();
 app.use(express.json());
 app.use(express.static("public"));
 //3.RUTAS
+const corsOption = {
+  credentials: true,
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:80",
+    "https://bpsonline.mx",
+  ],
+};
+
+app.use(cors(corsOption));
 app.use("/library", require("./routes/library"));
 
 //users
