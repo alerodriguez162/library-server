@@ -8,26 +8,16 @@ const cors = require("cors");
 const Activity = require("./models/Activity");
 
 require("dotenv").config();
-app.use(cors());
 
 //2.MIDDLEWARES
 //BAse de datos
 connectDB();
+app.use(cors());
 
 //Todas las peticiones y respuestas se manejan en protocolo JSON
 app.use(express.json());
 app.use(express.static("public"));
 //3.RUTAS
-const corsOption = {
-  credentials: true,
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:80",
-    "https://bpsonline.mx",
-  ],
-};
-
-app.use(cors(corsOption));
 app.use("/library", require("./routes/library"));
 
 //users
